@@ -21,11 +21,11 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"runtime"
 
 	"github.com/bigeagle/gohop/hop"
-	"github.com/bigeagle/gohop/logging"
 )
 
 var srvMode, cltMode, debug, getVersion bool
@@ -45,13 +45,10 @@ func main() {
 		os.Exit(0)
 	}
 
-	logging.InitLogger(debug)
-	logger := logging.GetLogger()
-
 	checkerr := func(err error) {
 		if err != nil {
-			logger.Error(err.Error())
-			os.Exit(1)
+			log.Print(err.Error())
+			log.Fatal(err.Error())
 		}
 	}
 
@@ -59,10 +56,11 @@ func main() {
 		cfgFile = flag.Arg(0)
 	}
 
-	logger.Info("using config file: %v", cfgFile)
+	log.Printf("using config file: %v", cfgFile)
+	fmt.Println(cfgFile)
 
 	icfg, err := hop.ParseHopConfig(cfgFile)
-	logger.Debug("%v", icfg)
+	// //log.Debug("%v", icfg)
 	checkerr(err)
 
 	maxProcs := runtime.GOMAXPROCS(0)
@@ -78,6 +76,6 @@ func main() {
 		err := hop.NewClient(cfg)
 		checkerr(err)
 	default:
-		logger.Error("Invalid config file")
+		log.Print("Invalid config file")
 	}
 }

@@ -22,6 +22,7 @@ package hop
 
 import (
 	"errors"
+	"log"
 	"sync"
 	// "runtime"
 	"sync/atomic"
@@ -106,7 +107,7 @@ func (l *bufferList) Push(key int64, p interface{}) {
 	i := 0
 	for cur := l.head.prev; cur != l.head; cur = cur.prev {
 		// if i > 0 {
-		//     logger.Debug("%d/%d", i, l.count)
+		//     //log.Debug("%d/%d", i, l.count)
 		// }
 		if cur.key < key {
 			uninserted = false
@@ -133,7 +134,7 @@ func (l *bufferList) Pop() interface{} {
 	l.mutex.Lock()
 	defer l.mutex.Unlock()
 	if l.count == 0 {
-		logger.Warning("Error")
+		log.Print("Error")
 		return nil
 	}
 
@@ -143,7 +144,7 @@ func (l *bufferList) Pop() interface{} {
 	l.count--
 	// delta := elem.key - l._lastpopped
 	// if delta < 0 {
-	//     // logger.Debug("%d, %d", elem.key, l._lastpopped)
+	//     // //log.Debug("%d, %d", elem.key, l._lastpopped)
 	//     ok = false
 	// } else {
 	//     ok = true

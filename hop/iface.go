@@ -25,6 +25,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"log"
 	"net"
 	"os"
 	"os/exec"
@@ -44,12 +45,12 @@ func newTun(name string) (iface *water.Interface, err error) {
 	if err != nil {
 		return nil, err
 	}
-	logger.Info("interface %v created", iface.Name())
+	log.Printf("interface %v created", iface.Name())
 
 	sargs := fmt.Sprintf("link set dev %s up mtu %d qlen 100", iface.Name(), MTU)
 	args := strings.Split(sargs, " ")
 	cmd := exec.Command("ip", args...)
-	logger.Info("ip %s", sargs)
+	log.Printf("ip %s", sargs)
 	err = cmd.Run()
 	if err != nil {
 		return nil, err
@@ -60,7 +61,7 @@ func newTun(name string) (iface *water.Interface, err error) {
 
 func setTunIP(iface *water.Interface, ip net.IP, subnet *net.IPNet) (err error) {
 	ip = ip.To4()
-	logger.Debug("%v", ip)
+	//log.Debug("%v", ip)
 	if ip[3]%2 == 0 {
 		return invalidAddr
 	}
@@ -73,7 +74,7 @@ func setTunIP(iface *water.Interface, ip net.IP, subnet *net.IPNet) (err error) 
 	sargs := fmt.Sprintf("addr add dev %s local %s peer %s", iface.Name(), ip, peer)
 	args := strings.Split(sargs, " ")
 	cmd := exec.Command("ip", args...)
-	logger.Info("ip %s", sargs)
+	log.Printf("ip %s", sargs)
 	err = cmd.Run()
 	if err != nil {
 		return err
@@ -82,7 +83,7 @@ func setTunIP(iface *water.Interface, ip net.IP, subnet *net.IPNet) (err error) 
 	sargs = fmt.Sprintf("route add %s via %s dev %s", subnet, peer, iface.Name())
 	args = strings.Split(sargs, " ")
 	cmd = exec.Command("ip", args...)
-	logger.Info("ip %s", sargs)
+	log.Printf("ip %s", sargs)
 	err = cmd.Run()
 	return err
 }
@@ -107,7 +108,7 @@ func getNetGateway() (gw, dev string, err error) {
 		line, isPrefix, err := rd.ReadLine()
 
 		if err != nil {
-			logger.Error(err.Error())
+			log.Print(err.Error())
 			return "", "", err
 		}
 		if isPrefix {
@@ -148,11 +149,11 @@ func addRoute(dest, nextHop, iface string) {
 
 	scmd := fmt.Sprintf("ip -4 r a %s via %s dev %s", dest, nextHop, iface)
 	cmd := exec.Command("bash", "-c", scmd)
-	logger.Info(scmd)
+	log.Print(scmd)
 	err := cmd.Run()
 
 	if err != nil {
-		logger.Warning(err.Error())
+		log.Print(err.Error())
 	}
 
 }
@@ -162,23 +163,23 @@ func delRoute(dest string) {
 	sargs := fmt.Sprintf("-4 route del %s", dest)
 	args := strings.Split(sargs, " ")
 	cmd := exec.Command("ip", args...)
-	logger.Info("ip %s", sargs)
+	log.Printf("ip %s", sargs)
 	err := cmd.Run()
 
 	if err != nil {
-		logger.Warning(err.Error())
+		log.Print(err.Error())
 	}
 }
 
 // redirect default gateway
 func redirectGateway(iface, gw string) error {
 	subnets := []string{"0.0.0.0/1", "128.0.0.0/1"}
-	logger.Info("Redirecting Gateway")
+	log.Print("Redirecting Gateway")
 	for _, subnet := range subnets {
 		sargs := fmt.Sprintf("-4 route add %s via %s dev %s", subnet, gw, iface)
 		args := strings.Split(sargs, " ")
 		cmd := exec.Command("ip", args...)
-		logger.Info("ip %s", sargs)
+		log.Printf("ip %s", sargs)
 		err := cmd.Run()
 
 		if err != nil {
@@ -191,7 +192,7 @@ func redirectGateway(iface, gw string) error {
 // redirect ports to one
 func redirectPort(from, to string) error {
 	//iptables -t nat -A PREROUTING -p udp -m udp --dport 40000:41000 -j REDIRECT --to-ports 1234
-	logger.Info("Port Redirecting")
+	log.Print("Port Redirecting")
 	sargs := fmt.Sprintf("-t nat -A PREROUTING -p udp -m udp --dport %s -j REDIRECT --to-ports %s", from, to)
 	args := strings.Split(sargs, " ")
 	cmd := exec.Command("iptables", args...)
@@ -212,7 +213,7 @@ func redirectPort(from, to string) error {
 // undo redirect ports
 func unredirectPort(from, to string) error {
 	//iptables -t nat -D PREROUTING -p udp -m udp --dport 40000:41000 -j REDIRECT --to-ports 1234
-	logger.Info("Clear Port Redirecting")
+	log.Print("Clear Port Redirecting")
 	sargs := fmt.Sprintf("-t nat -D PREROUTING -p udp -m udp --dport %s -j REDIRECT --to-ports %s", from, to)
 	args := strings.Split(sargs, " ")
 	cmd := exec.Command("iptables", args...)
@@ -232,7 +233,7 @@ func unredirectPort(from, to string) error {
 
 func fixMSS(iface string, is_server bool) error {
 	mss := MTU - 40
-	logger.Info("Fix MSS with iptables to %d", mss)
+	log.Printf("Fix MSS with iptables to %d", mss)
 	io := "o"
 	if is_server {
 		io = "i"
@@ -251,7 +252,7 @@ func fixMSS(iface string, is_server bool) error {
 
 func clearMSS(iface string, is_server bool) error {
 	mss := MTU - 40
-	logger.Info("Clean MSS fix")
+	log.Print("Clean MSS fix")
 	io := "o"
 
 	if is_server {

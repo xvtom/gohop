@@ -23,8 +23,9 @@ import (
 	"crypto/aes"
 	_cipher "crypto/cipher"
 	"crypto/rand"
+	"log"
 
-	"code.google.com/p/snappy-go/snappy"
+	"github.com/golang/snappy/snappy"
 )
 
 type hopCipher struct {
@@ -62,7 +63,7 @@ func (s *hopCipher) encrypt(msg []byte) []byte {
 func (s *hopCipher) decrypt(iv []byte, ctext []byte) []byte {
 	defer func() {
 		if err := recover(); err != nil {
-			logger.Error("%v", err)
+			log.Printf("%v", err)
 		}
 	}()
 	decrypter := _cipher.NewCBCDecrypter(s.block, iv)

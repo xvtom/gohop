@@ -208,7 +208,7 @@ func newHopPeer(id uint64, srv *HopServer, addr *net.UDPAddr, idx int) *HopPeer 
 	hp.seq = 0
 	hp.srv = srv
 	hp.recvBuffer = newHopPacketBuffer(srv.toIface)
-	// logger.Debug("%v, %v", hp.recvBuffer, hp.srv)
+	// //log.Debug("%v, %v", hp.recvBuffer, hp.srv)
 
 	a := newhUDPAddr(addr)
 	hp._addrs_lst = append(hp._addrs_lst, a)
@@ -238,6 +238,6 @@ func (h *HopPeer) insertAddr(addr *net.UDPAddr, idx int) {
 	if _, found := h.addrs[a.hash]; !found {
 		h.addrs[a.hash] = idx
 		h._addrs_lst = append(h._addrs_lst, a)
-		//logger.Info("%v %d", addr, len(h._addrs_lst))
+		//log.Print("%v %d", addr, len(h._addrs_lst))
 	}
 }

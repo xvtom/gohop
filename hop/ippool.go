@@ -2,6 +2,7 @@ package hop
 
 import (
 	"errors"
+	"log"
 	"net"
 	"sync/atomic"
 )
@@ -39,11 +40,11 @@ func (p *hopIPPool) next() (*net.IPNet, error) {
 func (p *hopIPPool) relase(ip net.IP) {
 	defer func() {
 		if err := recover(); err != nil {
-			logger.Error("%v", err)
+			log.Printf("%v", err)
 		}
 	}()
 
-	logger.Debug("releasing ip: %v", ip)
+	//log.Debug("releasing ip: %v", ip)
 	i := ip[3]
 	p.pool[i] = 0
 }

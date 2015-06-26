@@ -18,12 +18,6 @@
 
 package hop
 
-import (
-	"github.com/bigeagle/gohop/logging"
-)
-
-var logger = logging.GetLogger()
-
 var MTU = 1400
 
 const (

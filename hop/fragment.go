@@ -3,6 +3,7 @@ package hop
 // Handle HopPacket's fragmentation
 
 import (
+	"log"
 	"sync"
 	"time"
 )
@@ -97,7 +98,7 @@ func (hf *HopFragmenter) Fragmentate(c hopSequencer, frame []byte) []*HopPacket 
 	   hp.Plen = uint16(frameSize)
 	   hp.FragPrefix = uint16(0)
 	   hp.setPayload(frame)
-	   logger.Debug("seq: %d, plen: %d, dlen: %d", seq, hp.Plen, hp.Dlen)
+	   //log.Debug("seq: %d, plen: %d, dlen: %d", seq, hp.Plen, hp.Dlen)
 	   packets = append(packets, hp)
 	   return packets
 	*/
@@ -109,7 +110,7 @@ func (hf *HopFragmenter) Fragmentate(c hopSequencer, frame []byte) []*HopPacket 
 
 	for i, restSize := 0, frameSize; i < MAX_FRAGS; i++ {
 		fragSize := hf.morpher.NextPackSize()
-		//logger.Debug("restSize: %d, fragSize: %d", restSize, fragSize)
+		////log.Debug("restSize: %d, fragSize: %d", restSize, fragSize)
 
 		delta := restSize - fragSize
 
@@ -145,7 +146,7 @@ func (hf *HopFragmenter) Fragmentate(c hopSequencer, frame []byte) []*HopPacket 
 		start = q
 	}
 
-	//logger.Debug("packSize: %d, fragSize: %v", frameSize, prefixes)
+	////log.Debug("packSize: %d, fragSize: %v", frameSize, prefixes)
 	last := len(packets) - 1
 	packets[last].Flag ^= HOP_FLG_MFR
 	if padding > 0 {
@@ -164,21 +165,21 @@ func (hf *HopFragmenter) reAssemble(packets []*HopPacket) []*HopPacket {
 	defer func() {
 		hf.cache.lock.Unlock()
 		if err := recover(); err != nil {
-			logger.Error("Error reassemble packet fragments: %s", err)
+			log.Printf("Error reassemble packet fragments: %s", err)
 		}
 	}()
 
 	for _, p := range packets {
-		// logger.Debug("frag: %v", p.hopPacketHeader)
+		// //log.Debug("frag: %v", p.hopPacketHeader)
 		if p.Dlen == p.Plen {
-			// logger.Debug("rpacket: %v", p.hopPacketHeader)
+			// //log.Debug("rpacket: %v", p.hopPacketHeader)
 			rpacks = append(rpacks, p)
 			continue
 		}
 
 		if r, found := hf.cache.cache[p.Seq]; found {
 			rp := r.p
-			// logger.Debug("plen: %d, recved: %d", rp.Plen, rp.Dlen)
+			// //log.Debug("plen: %d, recved: %d", rp.Plen, rp.Dlen)
 			rp.Dlen += p.Dlen
 			s := p.FragPrefix
 			e := s + p.Dlen
@@ -186,7 +187,7 @@ func (hf *HopFragmenter) reAssemble(packets []*HopPacket) []*HopPacket {
 			copy(rp.payload[s:e], p.payload)
 			if rp.Dlen == rp.Plen {
 				rp.Flag ^= HOP_FLG_MFR
-				// logger.Debug("rpacket: %v", rp.hopPacketHeader)
+				// //log.Debug("rpacket: %v", rp.hopPacketHeader)
 				rpacks = append(rpacks, rp)
 				delete(hf.cache.cache, p.Seq)
 			}
