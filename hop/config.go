@@ -3,7 +3,7 @@ package hop
 import (
 	"errors"
 
-	"code.google.com/p/gcfg"
+	"github.com/xvtom/gcfg"
 )
 
 // Server Config

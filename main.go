@@ -25,7 +25,7 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/bigeagle/gohop/hop"
+	"github.com/xvtom/gohop/hop"
 )
 
 var srvMode, cltMode, debug, getVersion bool
